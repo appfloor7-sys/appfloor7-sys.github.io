@@ -772,6 +772,7 @@ footer a{color:inherit}
           loading.style.display='none';
           selectTab('tab-view');
           reportFonts();
+          busy=false;
         }catch(e){
           var msg=String(e&&e.message||e);
           // hwp.js가 못 읽는 문서는 rhwp로 한 번 더 시도한다.
