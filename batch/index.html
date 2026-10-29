@@ -213,6 +213,26 @@ nav.crumb a{color:var(--muted);text-decoration:none}
     return hwpxLib;
   }
 
+  // hwp.js 가 실패한 문서용 대체 엔진. 메인 뷰어와 같은 규칙이다.
+  var rhwpMod=null;
+  function loadRhwp(){
+    if(rhwpMod) return rhwpMod;
+    rhwpMod=new Promise(function(resolve, reject){
+      if(!window.measureTextWidth){
+        var ctx=null, lastFont='';
+        window.measureTextWidth=function(font, text){
+          if(!ctx) ctx=document.createElement('canvas').getContext('2d');
+          if(font!==lastFont){ ctx.font=font; lastFont=font; }
+          return ctx.measureText(text).width;
+        };
+      }
+      import('../rhwp.js')
+        .then(function(m){ return m.default({module_or_path:'../rhwp_bg.wasm'}).then(function(){ return m; }); })
+        .then(resolve, function(e){ rhwpMod=null; reject(e); });
+    });
+    return rhwpMod;
+  }
+
   function readHwpx(buf, lib){
     var reader=new lib.HwpxReader();
     return reader.loadFromArrayBuffer(buf).then(function(){
@@ -267,7 +287,18 @@ nav.crumb a{color:var(--muted);text-decoration:none}
           res({ok:true, text:parsed.text, tables:parsed.tables});
         }catch(e){
           var m=String(e&&e.message||e);
-          res({ok:false, error:/CFB|compound|signature/i.test(m)?'HWP 형식 아님':'해석 실패'});
+          // 표는 못 얻어도 본문은 살린다. 표가 없으면 어차피 xlsx 기여분은 0이다.
+          loadRhwp().then(function(mod){
+            try{
+              var d=new mod.HwpDocument(new Uint8Array(rd.result));
+              var text=String(d.getTextFileUnicode()||'').replace(/\r\n?/g,'\n').replace(/\n{3,}/g,'\n\n').trim();
+              res({ok:true, text:text, tables:[], engine:'rhwp'});
+            }catch(err){
+              res({ok:false, error:/CFB|compound|signature/i.test(m)?'HWP 형식 아님':'해석 실패'});
+            }
+          }, function(){
+            res({ok:false, error:/CFB|compound|signature/i.test(m)?'HWP 형식 아님':'해석 실패'});
+          });
         }
       };
       rd.readAsArrayBuffer(f);
@@ -278,7 +309,10 @@ nav.crumb a{color:var(--muted);text-decoration:none}
     cntEl.textContent=items.length+'개';
     filesEl.innerHTML=items.map(function(it,i){
       var stClass = it.status==='ok' ? 'ok' : (it.status==='bad' ? 'bad' : '');
-      var stText = it.status==='ok' ? ('표 '+it.tables.length+' · '+(it.text||'').length.toLocaleString()+'자')
+      var stText = it.status==='ok'
+                 ? (it.engine==='rhwp'
+                     ? '표 없음 · '+(it.text||'').length.toLocaleString()+'자 · 대체 엔진'
+                     : '표 '+it.tables.length+' · '+(it.text||'').length.toLocaleString()+'자')
                  : it.status==='bad' ? (it.error||'실패')
                  : it.status==='wait' ? '대기' : '처리 중…';
       return '<div class="f"><span class="nm" title="'+esc(it.name)+'">'+esc(it.name)+'</span>'+
@@ -303,7 +337,7 @@ nav.crumb a{color:var(--muted);text-decoration:none}
       if(!it){ processing=false; render(); return; }
       it.status='busy'; render();
       readFile(it.file).then(function(r){
-        if(r.ok){ it.status='ok'; it.text=r.text; it.tables=r.tables; }
+        if(r.ok){ it.status='ok'; it.text=r.text; it.tables=r.tables; it.engine=r.engine||'hwp.js'; }
         else { it.status='bad'; it.error=r.error; }
         render();
         // UI 갱신이 끼어들 수 있게 한 틱 양보한다.
