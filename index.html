@@ -304,6 +304,27 @@ footer a{color:inherit}
   }
   function clearErr(){ errEl.hidden=true; errEl.innerHTML=''; }
 
+  // hwp.js와 rhwp가 모두 실패했을 때. 원인 문구에 따라 안내를 나눈다.
+  function failHwp(msg){
+    if(/암호|password|encrypt/i.test(msg)){
+      fail('암호가 걸린 문서입니다.',
+        '<p>배포용(암호) 문서는 열 수 없습니다. 한글에서 암호를 해제한 뒤 다시 저장해 주세요.</p>');
+    } else if(/HWP Docu|HWP3|3\.0|version/i.test(msg)){
+      fail('구형 HWP 문서입니다.',
+        '<p>한글 3.0 이하에서 만든 문서는 지원하지 않습니다. '+
+        '한글에서 <strong>다른 이름으로 저장 → HWP 5.0</strong>으로 저장한 뒤 열어 주세요.</p>');
+    } else if(/not a compound|Invalid|CFB|signature|block type|stored block|DataView|Section not exist|FileHeader|Recived/i.test(msg)){
+      fail('문서를 해석하지 못했습니다.',
+        '<p>HWP 5.0 형식이 아니거나 파일이 손상된 것 같습니다. '+
+        '정상 파일인데도 이 안내가 나오면 <a href="mailto:appfloor7@gmail.com'+
+        '?subject=HWP%20%EC%97%B4%EA%B8%B0%20%EC%8B%A4%ED%8C%A8">알려</a> 주세요. 파일을 받으면 원인을 확인하겠습니다.</p>');
+    } else {
+      fail('문서를 여는 중 오류가 났습니다.',
+        '<p>일부 차트·개체가 포함된 문서에서 발생할 수 있습니다. '+
+        '브라우저를 새로고침한 뒤 다시 시도해 주세요.</p>');
+    }
+  }
+
   // ---- 문서에서 텍스트·표 추출 (doc.js 공용 모듈) ----
   var tables=[], textData='';
 
@@ -378,6 +399,7 @@ footer a{color:inherit}
   function reset(){
     lastDocBytes=null; exactHtmlCache=null; approxHtmlCache=null;
     document.getElementById('hwpxbar').hidden=true;
+    document.getElementById('hwpxmode').hidden=false;
     document.getElementById('fontnote').hidden=true;
     viewer.innerHTML='';
     app.hidden=true; drop.hidden=false;
@@ -508,6 +530,49 @@ footer a{color:inherit}
         btn.textContent='다시 시도';
         btn.disabled=false;
       }
+    });
+  }
+
+  // ---- HWP 대체 엔진 폴백 ----
+  // hwp.js는 실제 HWP 문서의 약 28%에서 실패한다 (실측: rhwp 표본 288건 중 82건 —
+  // CFB/zlib 해석 실패, 스택 초과, 구형 3.0 문서). rhwp는 그중 80건을 읽는다.
+  // 실패했을 때만 rhwp로 다시 시도한다. 화면과 텍스트는 살리고,
+  // 구조 정보가 없는 표 추출만 포기한다.
+
+  function openHwpFallback(bytes, f, t0){
+    var note=document.getElementById('hwpxnote');
+    var modeBtn=document.getElementById('hwpxmode');
+    loading.style.display='flex';
+    return loadRhwp().then(function(m){
+      var doc=new m.HwpDocument(bytes);
+      var pages=doc.pageCount();
+      var limit=Math.min(pages, 60), html='';
+      for(var i=0;i<limit;i++) html+=doc.renderPageSvg(i);
+      if(window.HWPFonts) html=window.HWPFonts.rewriteSvg(html);
+
+      lastDocBytes=bytes;
+      approxHtmlCache='<div class="hwpx-pages">'+html+'</div>';
+      exactHtmlCache=approxHtmlCache;
+      viewer.innerHTML=approxHtmlCache;
+
+      var text='';
+      try{ text=String(doc.getTextFileUnicode()||'').replace(/\r\n?/g,'\n').replace(/\n{3,}/g,'\n\n').trim(); }catch(e){}
+      tables=[]; textData=text;
+      var ta=document.getElementById('textout');
+      ta.value=text;
+      document.getElementById('textlen').textContent=text.length.toLocaleString()+'자';
+      document.getElementById('tblcount').textContent='';
+      document.getElementById('tblout').innerHTML='<div class="empty">이 문서는 대체 엔진으로 열렸습니다. 표 구조는 추출할 수 없지만, 텍스트는 복사할 수 있습니다.</div>';
+
+      modeBtn.hidden=true;
+      document.getElementById('hwpxbar').hidden=false;
+      note.textContent='HWP · 대체 엔진(rhwp) · '+pages+'페이지'+(pages>limit?' (앞 '+limit+'장만 표시)':'');
+
+      if(window.HWPFonts) window.HWPFonts.applyToDom(viewer);
+      fmeta.textContent=fmt(f.size)+' · '+Math.round(performance.now()-t0)+'ms';
+      loading.style.display='none';
+      selectTab('tab-view');
+      reportFonts();
     });
   }
 
@@ -663,6 +728,7 @@ footer a{color:inherit}
 
     busy=true;
     drop.hidden=true; app.hidden=false;
+    document.getElementById('hwpxbar').hidden=true;
     loading.style.display='flex';
     fname.textContent=f.name;
     fmeta.textContent=fmt(f.size);
@@ -707,19 +773,23 @@ footer a{color:inherit}
           selectTab('tab-view');
           reportFonts();
         }catch(e){
-          loading.style.display='none';
-          reset();
           var msg=String(e&&e.message||e);
-          if(/not a compound|Invalid|CFB|signature/i.test(msg)){
-            fail('문서를 해석하지 못했습니다.',
-              '<p>HWP 5.0 형식이 아니거나 파일이 손상된 것 같습니다. '+
-              '구형(3.0 이하) 문서나 암호가 걸린 문서는 지원하지 않습니다.</p>');
-          } else {
-            fail('문서를 여는 중 오류가 났습니다.',
-              '<p>일부 차트·개체가 포함된 문서에서 발생할 수 있습니다. '+
-              '브라우저를 새로고침한 뒤 다시 시도해 주세요.</p>');
-          }
-        }finally{ busy=false; }
+          // hwp.js가 못 읽는 문서는 rhwp로 한 번 더 시도한다.
+          openHwpFallback(new Uint8Array(rd.result), f, t0).then(function(){
+            busy=false;
+          }).catch(function(e2){
+            busy=false;
+            loading.style.display='none';
+            reset();
+            if(String(e2&&e2.message||e2)==='FILE_PROTO'){
+              fail('이 문서는 대체 엔진이 필요합니다.',
+                '<p>파일을 직접 열 때(<code>file://</code>)는 대체 엔진을 불러올 수 없습니다. '+
+                '웹 주소로 접속해 다시 시도해 주세요.</p>');
+            } else {
+              failHwp(msg);
+            }
+          });
+        }
       }, 40);
     };
     rd.readAsArrayBuffer(f);
