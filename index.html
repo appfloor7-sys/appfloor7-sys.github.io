@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HWP·HWPX 뷰어 - 설치 없이 열기, 텍스트·표 추출까지 (무료)</title>
+<meta name="description" content="HWP와 HWPX를 설치 없이 브라우저에서 열고, 본문 텍스트를 복사하거나 표를 엑셀(xlsx·CSV)로 저장합니다. 파일이 서버로 전송되지 않고 회원가입이 없습니다.">
+<meta name="keywords" content="hwp 뷰어, hwpx 뷰어, hwp 파일 열기, hwpx 파일 열기, hwp 텍스트 추출, hwp 표 엑셀 변환, 한글 파일 뷰어, hwp pdf 저장">
+<link rel="canonical" href="/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%231e40af'/%3E%3Ctext x='50' y='68' font-size='46' font-family='sans-serif' font-weight='700' fill='%23fff' text-anchor='middle'%3EHWP%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="HWP 문서 작업대">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:image" content="https://appfloor7-sys.github.io/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:title" content="HWP·HWPX 뷰어 - 설치 없이 브라우저에서 바로 열기">
+<meta property="og:description" content="한글(HWP·HWPX) 파일을 설치 없이 열고 텍스트·표까지 추출합니다. 서버 업로드 없음, 무료.">
+<meta property="og:url" content="https://appfloor7-sys.github.io/">
+<meta name="robots" content="index,follow">
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--muted:#666;--line:#e5e5e5;--accent:#1e40af;--accent-fg:#fff;--ok:#059669;--warn:#b45309;--panel:#fafafa;--canvas:#e8eaed}
+@media(prefers-color-scheme:dark){:root{--bg:#111;--fg:#eee;--muted:#999;--line:#2a2a2a;--panel:#181818;--accent:#7aa2f7;--accent-fg:#0b1220;--canvas:#1c1c1e}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:0 20px}
+header{padding:40px 0 20px;text-align:center}
+h1{font-size:clamp(1.55rem,4.2vw,2.1rem);line-height:1.3;margin:0 0 10px;letter-spacing:-.02em}
+.lead{color:var(--muted);margin:0 auto;max-width:36em;font-size:.98rem}
+.badges{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:16px 0 0;font-size:.78rem}
+.badges span{border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--muted)}
+.drop{border:2px dashed var(--line);border-radius:14px;padding:52px 20px;text-align:center;background:var(--panel);cursor:pointer;transition:.15s;margin-top:6px}
+.drop:hover,.drop.over{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 5%,var(--panel))}
+.drop p{margin:0;color:var(--muted);font-size:.9rem}
+.drop strong{display:block;color:var(--fg);font-size:1.08rem;margin-bottom:6px}
+.drop .icon{font-size:2.2rem;line-height:1;margin-bottom:12px}
+#app[hidden],#drop[hidden],#err[hidden]{display:none}
+.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;border:1px solid var(--line);border-bottom:0;border-radius:12px 12px 0 0;background:var(--panel);font-size:.86rem}
+.toolbar .name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:min(46vw,340px)}
+.toolbar .meta{color:var(--muted)}
+.toolbar .sp{margin-left:auto;display:flex;gap:8px}
+.toolbar button{border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:8px;padding:6px 12px;font-size:.84rem;cursor:pointer;font-family:inherit}
+.toolbar button:hover{border-color:var(--accent);color:var(--accent)}
+.frame{height:calc(100vh - 300px);min-height:420px;border:1px solid var(--line);border-top:0;overflow:auto;background:var(--canvas);-webkit-overflow-scrolling:touch}
+#viewer{width:100%;height:100%;min-width:0}
+.tabs{display:flex;gap:2px;border:1px solid var(--line);border-bottom:0;background:var(--panel);padding:6px 8px 0;flex-wrap:wrap}
+.tabs button{border:1px solid transparent;border-bottom:0;background:transparent;color:var(--muted);font:inherit;font-size:.85rem;padding:8px 14px;border-radius:8px 8px 0 0;cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--bg);border-color:var(--line);color:var(--fg);font-weight:600;margin-bottom:-1px}
+.tabs button:hover:not([aria-selected=true]){color:var(--fg)}
+.pane{display:none}
+.pane.on{display:block}
+.txt{width:100%;height:100%;min-height:420px;border:0;padding:18px;font:14px/1.75 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--bg);color:var(--fg);resize:none;white-space:pre-wrap}
+.tblwrap{padding:14px;overflow:auto}
+.tblwrap table{border-collapse:collapse;font-size:.86rem;background:var(--bg);min-width:60%}
+.tblwrap td,.tblwrap th{border:1px solid var(--line);padding:6px 10px;vertical-align:top;max-width:420px}
+.tblwrap th{background:var(--panel);font-weight:600;text-align:left}
+.tblbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--panel);font-size:.84rem}
+.tblbar b{font-weight:600}
+.tblbar button{border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:8px;padding:6px 12px;font-size:.83rem;cursor:pointer;font-family:inherit}
+.tblbar button:hover{border-color:var(--accent);color:var(--accent)}
+.tblbar .sp{margin-left:auto;display:flex;gap:8px}
+.empty{padding:60px 20px;text-align:center;color:var(--muted);font-size:.9rem}
+.loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:60px 20px;color:var(--muted);font-size:.9rem}
+.spin{width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.fontnote{margin-top:12px;border:1px solid #fcd34d;background:#fffbeb;color:#92400e;
+  border-radius:10px;padding:11px 14px;font-size:.85rem;line-height:1.6}
+.fontnote[hidden]{display:none}
+.fontnote b{color:#78350f}
+.fontnote .fa{margin-left:6px;font:inherit;font-size:.8rem;padding:2px 9px;border-radius:999px;
+  border:1px solid #d97706;background:#fff;color:#92400e;cursor:pointer}
+.fontnote .fa:hover{background:#fef3c7}
+@media(prefers-color-scheme:dark){.fontnote{border-color:#78350f;background:#2a2113;color:#fbbf24}
+  .fontnote b{color:#fde68a}.fontnote .fa{background:#1c1810;border-color:#b45309;color:#fbbf24}}
+.err{border:1px solid #fca5a5;background:#fef2f2;color:#991b1b;border-radius:12px;padding:16px 18px;margin-top:14px;font-size:.92rem}
+/* HWPX는 문서를 HTML로 변환해 보여준다. 종이 느낌을 위해 흰 페이지 위에 올린다. */
+.hwpx-page{background:#fff;color:#111;max-width:820px;margin:0 auto;padding:52px 48px;min-height:100%;
+  font-family:"Hamchorom Batang","함초롬바탕","바탕",Batang,"Apple SD Gothic Neo","Malgun Gothic",serif;
+  font-size:12pt;line-height:1.75;word-break:keep-all;overflow-wrap:break-word}
+.hwpx-page p{margin:0 0 4px;min-height:.9em}
+.hwpx-page table{border-collapse:collapse;width:100%;margin:4px 0;table-layout:fixed;word-break:break-all}
+.hwpx-page td,.hwpx-page th{padding:3px 6px;vertical-align:top;border:1px solid #e3e3e3}
+/* 원본 레이아웃(SVG) — 페이지마다 종이처럼 분리 */
+.hwpx-pages{background:#eceded;padding:18px 0}
+.hwpx-pages svg{display:block;margin:0 auto 14px;background:#fff;max-width:100%;height:auto;box-shadow:0 1px 4px rgba(0,0,0,.14)}
+.hwpx-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 12px;
+  background:var(--panel);border-bottom:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.hwpx-bar[hidden]{display:none}
+.hwpx-bar button{font:inherit;font-size:.78rem;padding:5px 10px;border-radius:999px;cursor:pointer;
+  border:1px solid var(--line);background:var(--bg);color:var(--fg);white-space:nowrap}
+.hwpx-bar button:hover{border-color:var(--accent);color:var(--accent)}
+.hwpx-bar button:disabled{opacity:.6;cursor:default}
+.hwpx-page img{max-width:100%;height:auto}
+.hwpx-page strong{font-weight:700}
+.hwpx-page a{color:#1a56db}
+@media(max-width:640px){
+  .hwpx-page{padding:20px 14px;font-size:11pt}
+  .hwpx-page table{font-size:10pt}
+}
+@media(prefers-color-scheme:dark){.err{border-color:#7f1d1d;background:#2a1414;color:#fca5a5}}
+.err b{display:block;margin-bottom:6px}
+.err code{background:rgba(0,0,0,.06);padding:1px 5px;border-radius:4px;font-size:.85em}
+.note{color:var(--muted);font-size:.82rem;margin-top:10px;text-align:center}
+article{margin-top:44px;border-top:1px solid var(--line);padding-top:32px}
+article h2{font-size:1.15rem;margin:30px 0 10px}
+article h2:first-child{margin-top:0}
+article p,article li{color:var(--muted);font-size:.94rem}
+article ul,article ol{padding-left:1.3em}
+article li{margin-bottom:6px}
+article strong{color:var(--fg)}
+details{border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:8px}
+summary{cursor:pointer;font-weight:600;font-size:.94rem}
+details p{margin:10px 0 0}
+.ad-slot{margin:26px 0;padding:12px;border:1px solid var(--line);border-radius:10px;min-height:90px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.75rem}
+footer{border-top:1px solid var(--line);padding:24px 0 48px;color:var(--muted);font-size:.82rem;text-align:center}
+footer a{color:inherit}
+.sitelinks{margin-top:12px;display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.sitelinks a{color:var(--muted);text-decoration:none;border-bottom:1px solid var(--line)}
+.sitelinks a:hover{color:var(--accent);border-color:var(--accent)}
+@media(max-width:600px){
+ .frame{height:calc(100vh - 260px);min-height:360px}
+ .toolbar .meta{display:none}
+ .toolbar .name{max-width:40vw}
+}
+@media print{
+ .toolbar,.drop,header,article,.ad-slot,footer,.note,.tabs{display:none!important}
+ #pane-text,#pane-table{display:none!important}
+ #pane-view{display:block!important}
+ .frame{height:auto;border:0;overflow:visible;background:#fff}
+ #viewer{height:auto}
+}
+</style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"HWP·HWPX 뷰어 - 설치 없이 브라우저에서 열기","applicationCategory":"BusinessApplication","operatingSystem":"Any","browserRequirements":"Chrome, Edge, Safari, Firefox 최신 버전","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"description":"한글(HWP) 문서를 설치 없이 브라우저에서 바로 열어 보는 무료 뷰어. 파일이 서버로 전송되지 않습니다."}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"HWP 파일을 설치 없이 열 수 있나요?","acceptedAnswer":{"@type":"Answer","text":"네. 이 페이지에서 파일을 선택하면 브라우저 안에서 바로 문서가 표시됩니다. 프로그램 설치가 필요 없습니다."}},
+{"@type":"Question","name":"파일이 서버로 업로드되나요?","acceptedAnswer":{"@type":"Answer","text":"아니요. 문서는 브라우저 메모리에서만 처리되며 어떤 서버로도 전송되지 않습니다. 네트워크를 끊어도 열립니다."}},
+{"@type":"Question","name":"HWPX 파일도 열리나요?","acceptedAnswer":{"@type":"Answer","text":"네. 한글 2014 이후의 HWPX(.hwpx)를 지원합니다. 문서 구조를 즉시 보여준 뒤, 원본 레이아웃(페이지 단위)으로 전환할 수 있습니다."}},
+{"@type":"Question","name":"인쇄하거나 PDF로 저장할 수 있나요?","acceptedAnswer":{"@type":"Answer","text":"인쇄 버튼을 누르면 브라우저 인쇄 창이 열립니다. 대상에서 'PDF로 저장'을 선택하면 PDF 파일로 보관할 수 있습니다."}},
+{"@type":"Question","name":"본문 텍스트를 복사할 수 있나요?","acceptedAnswer":{"@type":"Answer","text":"네. 텍스트 복사 탭에서 문서 전체 본문을 꺼내 복사하거나 .txt로 저장할 수 있습니다. 파일은 서버로 전송되지 않습니다."}},
+{"@type":"Question","name":"표를 엑셀로 옮길 수 있나요?","acceptedAnswer":{"@type":"Answer","text":"표 추출 탭에서 표를 선택해 복사하거나 CSV로 저장할 수 있습니다. CSV는 UTF-8 BOM으로 내보내 엑셀에서 한글이 깨지지 않습니다."}},
+{"@type":"Question","name":"무료인가요?","acceptedAnswer":{"@type":"Answer","text":"무료이며 회원가입, 워터마크, 페이지 수 제한이 없습니다."}}]}
+</script>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>HWP · HWPX 뷰어</h1>
+  <p class="lead">한글 문서(HWP·HWPX)를 <strong>설치 없이</strong> 열고, 본문 텍스트를 복사하거나 표를 엑셀(.xlsx)로 저장합니다. 파일은 서버로 전송되지 않습니다.</p>
+  <div class="badges"><span>설치 없음</span><span>업로드 없음</span><span>텍스트 추출</span><span>표 → 엑셀</span><span>무료</span></div>
+</header>
+
+<main>
+  <div class="drop" id="drop" role="button" tabindex="0" aria-label="HWP 파일 선택">
+    <div class="icon" aria-hidden="true">📄</div>
+    <strong>HWP · HWPX 파일을 여기로 끌어다 놓으세요</strong>
+    <p>또는 클릭해서 선택 · .hwp · .hwpx · 최대 50MB</p>
+  </div>
+  <input type="file" id="file" accept=".hwp,.hwpx" hidden>
+  <input type="file" id="fontfile" accept=".ttf,.otf,.ttc,.woff,.woff2" multiple hidden>
+  <div class="fontnote" id="fontnote" hidden></div>
+
+  <section id="app" hidden>
+    <div class="toolbar">
+      <span class="name" id="fname"></span>
+      <span class="meta" id="fmeta"></span>
+      <span class="sp">
+        <button type="button" id="fontbtn" title="문서에 쓰인 글꼴 파일(.ttf/.otf)을 직접 넣습니다">글꼴 넣기</button>
+        <button type="button" id="print">인쇄 · PDF 저장</button>
+        <button type="button" id="reset">다른 파일</button>
+      </span>
+    </div>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="tab-view" aria-selected="true" aria-controls="pane-view">문서 보기</button>
+      <button type="button" role="tab" id="tab-text" aria-selected="false" aria-controls="pane-text">텍스트 복사</button>
+      <button type="button" role="tab" id="tab-table" aria-selected="false" aria-controls="pane-table">표 추출 <span id="tblcount"></span></button>
+    </div>
+
+    <div class="pane on" id="pane-view" role="tabpanel" aria-labelledby="tab-view">
+      <div class="hwpx-bar" id="hwpxbar" hidden>
+        <span id="hwpxnote">HWPX</span>
+        <button type="button" id="hwpxmode">원본 레이아웃으로 보기</button>
+      </div>
+      <div class="frame" id="frame">
+        <div class="loading" id="loading"><span class="spin"></span> 문서를 여는 중…</div>
+        <div id="viewer"></div>
+      </div>
+    </div>
+
+    <div class="pane" id="pane-text" role="tabpanel" aria-labelledby="tab-text">
+      <div class="frame">
+        <div class="tblbar">
+          <b>추출된 텍스트</b>
+          <span class="meta" id="textlen"></span>
+          <span class="sp">
+            <button type="button" id="copytext">전체 복사</button>
+            <button type="button" id="dltext">.txt 저장</button>
+          </span>
+        </div>
+        <textarea class="txt" id="textout" readonly spellcheck="false"></textarea>
+      </div>
+    </div>
+
+    <div class="pane" id="pane-table" role="tabpanel" aria-labelledby="tab-table">
+      <div class="frame">
+        <div class="tblbar">
+          <b>표</b>
+          <select id="tblsel" style="padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font-family:inherit;font-size:.83rem"></select>
+          <span class="meta" id="tblmeta"></span>
+          <span class="sp">
+            <button type="button" id="copytbl">표 복사</button>
+            <button type="button" id="dltbl">CSV</button>
+            <button type="button" id="dlxlsx">엑셀(.xlsx)</button>
+          </span>
+        </div>
+        <div class="tblwrap" id="tblout"><div class="empty">이 문서에는 표가 없습니다.</div></div>
+      </div>
+    </div>
+    <p class="note">확대·축소와 페이지 이동은 문서 위쪽 막대에서 조작할 수 있습니다.</p>
+  </section>
+
+  <div class="err" id="err" hidden></div>
+
+  <div class="ad-slot" aria-hidden="true">광고 영역</div>
+
+  <article>
+    <h2>사용 방법</h2>
+    <ol>
+      <li>위 영역에 <strong>.hwp</strong> 파일을 끌어다 놓거나 클릭해서 선택합니다.</li>
+      <li>문서가 브라우저 안에서 바로 열립니다. 설치나 로그인이 없습니다.</li>
+      <li><strong>텍스트 복사</strong> 탭에서 본문을 통째로 가져가고, <strong>표 추출</strong> 탭에서 표를 CSV로 저장합니다.</li>
+      <li>필요하면 <strong>인쇄 · PDF 저장</strong>으로 종이나 PDF로 남깁니다.</li>
+    </ol>
+
+    <h2>텍스트와 표를 꺼내는 이유</h2>
+    <p>한글 문서는 화면에서 읽는 것으로 끝나지 않습니다. 공고문의 표를 엑셀로 옮기고,
+    사업계획서 본문을 다른 문서에 붙이고, 받은 공문 내용을 메일에 인용해야 합니다.
+    그런데 HWP는 복사해도 서식이 깨지거나 표가 뭉개지는 일이 잦습니다.</p>
+    <p>이 도구는 문서 구조를 직접 읽어 <strong>문단은 문단대로, 표는 칸마다 따로</strong> 뽑습니다.
+    내려받는 CSV에는 UTF-8 BOM을 붙여, 엑셀에서 열었을 때 한글이 깨지지 않습니다.
+    표를 복사하면 셀 구분이 유지되어 엑셀에 그대로 붙여넣을 수 있습니다.</p>
+
+    <div class="ad-slot" aria-hidden="true">광고 영역</div>
+
+    <h2>왜 브라우저에서 여는가</h2>
+    <p>HWP 파일은 한글과컴퓨터의 한/글에서만 제대로 열리는 경우가 많아, 문서 하나를 확인하려고 수백 MB짜리 프로그램을 설치하거나 유료 뷰어를 구독해야 했습니다. 이 뷰어는 문서를 <strong>이 기기 안에서만</strong> 해석해 화면에 그립니다. 서버에 올리지 않으므로 회사 내부 문서나 개인 문서를 확인할 때도 파일이 외부로 나가지 않습니다.</p>
+
+    <h2>여러 개를 한 번에 처리하려면</h2>
+    <p>문서가 여러 개라면 <a href="/batch/">HWP 여러 개 한 번에</a>에서 표만 모아 엑셀 한 파일로 만들거나
+    본문을 하나의 텍스트로 합칠 수 있습니다. 한 번에 최대 20개까지 처리합니다.</p>
+
+    <h2>지원 범위</h2>
+    <ul>
+      <li><strong>지원</strong>: HWP 5.0(.hwp) · HWPX(.hwpx)의 본문, 표, 이미지, 글꼴 서식</li>
+      <li><strong>미지원</strong>: HWP 3.0 이하 구형 문서, 암호가 걸린 문서, 일부 차트·OLE 개체</li>
+      <li>문서에 쓰인 글꼴이 이 기기에 없으면 모양이 조금 다르게 보일 수 있습니다.</li>
+    </ul>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>파일이 정말 서버로 안 가나요?</summary><p>네. 이 페이지는 파일을 읽어 브라우저 메모리에서만 처리합니다. 개발자 도구의 네트워크 탭을 열어 두고 파일을 열어 보면, 파일 내용이 전송되지 않는 것을 직접 확인할 수 있습니다.</p></details>
+    <details><summary>모바일에서도 되나요?</summary><p>됩니다. 아이폰·안드로이드 브라우저에서 파일 앱에 있는 .hwp를 선택하면 열립니다. 다만 작은 화면에서는 확대가 필요할 수 있습니다.</p></details>
+    <details><summary>HWPX도 열리나요?</summary><p>네. 한글 2014 이후 기본 형식인 HWPX(.hwpx)를 지원합니다. 열면 문서 구조를 먼저 보여주고, 넓은 화면에서는 원본 레이아웃(페이지 단위)을 자동으로 불러옵니다. 원본 레이아웃은 약 4MB를 한 번만 내려받습니다. 좁은 화면이나 데이터 절약 모드에서는 버튼을 눌렀을 때만 받습니다.</p></details>
+    <details><summary>텍스트를 복사하면 서식도 유지되나요?</summary><p>본문 글자와 줄바꿈은 유지되지만 글꼴·색·크기는 빠집니다. 표는 <strong>표 추출</strong> 탭에서 셀 단위로 따로 복사하거나 CSV로 저장하는 편이 정확합니다.</p></details>
+    <details><summary>표를 엑셀로 바로 옮길 수 있나요?</summary><p><strong>표 복사</strong>를 누르면 셀 구분(탭)이 유지된 상태로 복사되어 엑셀에 붙여넣으면 칸이 나뉩니다. <strong>CSV 저장</strong>은 UTF-8 BOM을 붙여 내보내므로 엑셀에서 열어도 한글이 깨지지 않습니다.</p></details>
+    <details><summary>인쇄하면 배경이나 여백이 잘리지 않나요?</summary><p>브라우저 인쇄 설정에서 <strong>여백 없음</strong>과 <strong>배경 그래픽</strong>을 켜면 문서와 가장 비슷하게 출력됩니다.</p></details>
+  </article>
+</main>
+
+<footer>
+  <p>HWP 렌더링: <a href="https://github.com/hahnlee/hwp.js" rel="noopener nofollow" target="_blank">hwp.js</a> (Apache-2.0) ·
+  HWPX 해석: <a href="https://github.com/ssabro/hwpxjs" rel="noopener nofollow" target="_blank">hwp-convert</a> (MIT) ·
+  원본 레이아웃: <a href="https://github.com/edwardkim/rhwp" rel="noopener nofollow" target="_blank">rhwp</a> (MIT)</p>
+  <p>모두 한글과컴퓨터의 공개 문서 형식 명세를 참고한 오픈소스입니다. 라이선스 원문은 저장소의 LICENSE-*.txt에 있습니다.</p>
+  <p>이 페이지는 한글과컴퓨터와 무관한 독립 도구입니다.</p>
+  <nav class="sitelinks">
+    <a href="/batch/">여러 파일 한 번에 처리</a>
+    <a href="/pro/">대량 처리 (준비 중)</a>
+  </nav>
+</footer>
+</div>
+
+<script src="hwp.viewer.js"></script>
+<script src="fonts.js"></script>
+<script src="doc.js"></script>
+<script src="xlsx.js"></script>
+<script>
+(function(){
+  var drop=document.getElementById('drop'), fileEl=document.getElementById('file'),
+      app=document.getElementById('app'), errEl=document.getElementById('err'),
+      viewer=document.getElementById('viewer'), frame=document.getElementById('frame'),
+      loading=document.getElementById('loading'),
+      fname=document.getElementById('fname'), fmeta=document.getElementById('fmeta'),
+      MAX=50*1024*1024, busy=false;
+
+  function fmt(n){return n<1024?n+'B':n<1048576?(n/1024).toFixed(0)+'KB':(n/1048576).toFixed(1)+'MB';}
+
+  function fail(title, html){
+    errEl.innerHTML='<b>'+title+'</b>'+html;
+    errEl.hidden=false;
+  }
+  function clearErr(){ errEl.hidden=true; errEl.innerHTML=''; }
+
+  // ---- 문서에서 텍스트·표 추출 (doc.js 공용 모듈) ----
+  var tables=[], textData='';
+
+  function esc(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function saveBlob(name, content, mime){
+    var blob=new Blob([content],{type:mime});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download=name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+  }
+  function baseName(){
+    var n=fname.textContent||'document';
+    return n.replace(/\.hwp$/i,'')||'document';
+  }
+  function copyText(s, btn){
+    var done=function(){ var o=btn.textContent; btn.textContent='복사됨'; setTimeout(function(){ btn.textContent=o; },1400); };
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(s).then(done, function(){ fallbackCopy(s, done); });
+    } else fallbackCopy(s, done);
+  }
+  function fallbackCopy(s, done){
+    var ta=document.createElement('textarea');
+    ta.value=s; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); done(); }catch(e){}
+    ta.remove();
+  }
+
+  function renderTables(){
+    var sel=document.getElementById('tblsel'), out=document.getElementById('tblout');
+    document.getElementById('tblcount').textContent = tables.length ? '('+tables.length+')' : '';
+    if(!tables.length){
+      sel.innerHTML=''; sel.disabled=true;
+      out.innerHTML='<div class="empty">이 문서에는 표가 없습니다.</div>';
+      document.getElementById('tblmeta').textContent='';
+      return;
+    }
+    sel.disabled=false;
+    sel.innerHTML=tables.map(function(t,i){
+      return '<option value="'+i+'">표 '+(i+1)+' · '+t.rowCount+'행 × '+t.cols+'열</option>';
+    }).join('');
+    sel.onchange=function(){ drawTable(+sel.value); };
+    drawTable(0);
+  }
+  function drawTable(i){
+    var t=tables[i], out=document.getElementById('tblout');
+    if(!t) return;
+    var html='<table>';
+    t.rows.forEach(function(r,ri){
+      html+='<tr>';
+      r.forEach(function(c){
+        html += ri===0 ? '<th>'+esc(c).replace(/\n/g,'<br>')+'</th>'
+                       : '<td>'+esc(c).replace(/\n/g,'<br>')+'</td>';
+      });
+      html+='</tr>';
+    });
+    html+='</table>';
+    out.innerHTML=html;
+    document.getElementById('tblmeta').textContent=t.rowCount+'행 × '+t.cols+'열';
+  }
+
+  function resetExtract(){
+    tables=[]; textData='';
+    document.getElementById('textout').value='';
+    document.getElementById('textlen').textContent='';
+    renderTables();
+  }
+
+  function reset(){
+    lastDocBytes=null; exactHtmlCache=null; approxHtmlCache=null;
+    document.getElementById('hwpxbar').hidden=true;
+    document.getElementById('fontnote').hidden=true;
+    viewer.innerHTML='';
+    app.hidden=true; drop.hidden=false;
+    fileEl.value=''; clearErr();
+    resetExtract();
+    selectTab('tab-view');
+  }
+
+  function selectTab(id){
+    ['tab-view','tab-text','tab-table'].forEach(function(t){
+      var b=document.getElementById(t);
+      var on = t===id;
+      b.setAttribute('aria-selected', on?'true':'false');
+      var pane=document.getElementById(b.getAttribute('aria-controls'));
+      pane.classList.toggle('on', on);
+    });
+  }
+
+  // ---- HWPX(OWPML) ----
+  var hwpxLibPromise=null;
+  function loadHwpxLib(){
+    if(window.HWPXLib) return Promise.resolve(window.HWPXLib);
+    if(hwpxLibPromise) return hwpxLibPromise;
+    hwpxLibPromise=new Promise(function(resolve, reject){
+      var s=document.createElement('script');
+      s.src='hwpx.viewer.js';
+      s.onload=function(){ window.HWPXLib ? resolve(window.HWPXLib) : reject(new Error('HWPX 모듈 초기화 실패')); };
+      s.onerror=function(){ hwpxLibPromise=null; reject(new Error('HWPX 모듈을 불러오지 못했습니다.')); };
+      document.head.appendChild(s);
+    });
+    return hwpxLibPromise;
+  }
+
+  // 추출한 HTML의 표를 뷰어와 같은 구조로 바꾼다.
+  function tablesFromHtml(html){
+    var box=document.createElement('div');
+    box.innerHTML=html;
+    return [].slice.call(box.querySelectorAll('table')).map(function(t){
+      var rows=[].slice.call(t.rows).map(function(tr){
+        return [].slice.call(tr.cells).map(function(td){
+          return (td.innerText||td.textContent||'').replace(/\u00a0/g,' ').replace(/\n+$/,'');
+        });
+      }).filter(function(r){ return r.join('').trim()!==''; });
+      return {rows:rows, cols:rows[0]?rows[0].length:0, rowCount:rows.length};
+    }).filter(function(t){ return t.rowCount>0; });
+  }
+
+  // HWPX는 문서 전체가 HTML로 나오므로, 표 내용을 탭으로 이어 붙여 텍스트를 만든다.
+  function textFromHtml(html){
+    var box=document.createElement('div');
+    box.innerHTML=html;
+    var lines=[];
+    (function walk(node){
+      for(var i=0;i<node.children.length;i++){
+        var el=node.children[i], tag=el.tagName;
+        if(tag==='TABLE'){
+          [].slice.call(el.rows).forEach(function(tr){
+            var cells=[].slice.call(tr.cells).map(function(td){
+              return (td.innerText||td.textContent||'').replace(/\s+/g,' ').trim();
+            });
+            if(cells.join('').trim()) lines.push(cells.join('\t'));
+          });
+          continue;
+        }
+        if(tag==='IMG'||tag==='BR'){ continue; }
+        var own=el.innerText||el.textContent||'';
+        if(el.querySelector('table')){ walk(el); continue; }
+        own.split('\n').forEach(function(l){
+          l=l.replace(/\u00a0/g,' ').replace(/\s+$/,'');
+          if(l.trim()) lines.push(l);
+        });
+      }
+    })(box);
+    return lines.join('\n');
+  }
+
+  // ---- HWPX 원본 레이아웃 (WASM) ----
+  var rhwpMod=null, lastDocBytes=null, exactHtmlCache=null, approxHtmlCache=null;
+
+  function loadRhwp(){
+    if(rhwpMod) return rhwpMod;
+    rhwpMod=new Promise(function(resolve, reject){
+      if(location.protocol==='file:'){
+        reject(new Error('FILE_PROTO')); return;
+      }
+      // WASM 쪽이 텍스트 폭을 재기 위해 이 함수를 찾는다.
+      if(!window.measureTextWidth){
+        var ctx=null, lastFont='';
+        window.measureTextWidth=function(font, text){
+          if(!ctx) ctx=document.createElement('canvas').getContext('2d');
+          if(font!==lastFont){ ctx.font=font; lastFont=font; }
+          return ctx.measureText(text).width;
+        };
+      }
+      import('./rhwp.js').then(function(m){
+        return m.default({module_or_path:'./rhwp_bg.wasm'}).then(function(){ return m; });
+      }).then(resolve, reject);
+    });
+    return rhwpMod;
+  }
+
+  function renderExact(){
+    var btn=document.getElementById('hwpxmode'), note=document.getElementById('hwpxnote');
+    if(!lastDocBytes) return;
+    btn.disabled=true; btn.textContent='불러오는 중…';
+    loadRhwp().then(function(m){
+      var doc=new m.HwpDocument(lastDocBytes);
+      var pages=doc.pageCount(), html='';
+      // 200페이지 문서를 한 번에 그리면 화면이 멈춘다. 앞 60페이지만 그린다.
+      var limit=Math.min(pages, 60);
+      for(var i=0;i<limit;i++) html+=doc.renderPageSvg(i);
+      if(window.HWPFonts) html=window.HWPFonts.rewriteSvg(html);
+      exactHtmlCache='<div class="hwpx-pages">'+html+'</div>';
+      viewer.innerHTML=exactHtmlCache;
+      document.getElementById('frame').scrollTop=0;
+      note.textContent='HWPX · 원본 레이아웃 · '+pages+'페이지'+(pages>limit?' (앞 '+limit+'장만 표시)':'');
+      btn.textContent='텍스트 흐름으로 보기';
+      btn.disabled=false;
+      btn.dataset.mode='exact';
+      reportFonts();
+    }).catch(function(e){
+      var msg=String(e&&e.message||e);
+      if(msg==='FILE_PROTO'){
+        note.textContent='HWPX · 구조 보기 (파일을 직접 열면 원본 레이아웃은 쓸 수 없습니다)';
+        btn.hidden=true;
+      } else {
+        note.textContent='HWPX · 구조 보기 (원본 레이아웃을 불러오지 못했습니다)';
+        btn.textContent='다시 시도';
+        btn.disabled=false;
+      }
+    });
+  }
+
+  document.getElementById('hwpxmode').addEventListener('click', function(){
+    if(this.dataset.mode==='exact'){
+      if(approxHtmlCache!==null) viewer.innerHTML=approxHtmlCache;
+      this.textContent='원본 레이아웃으로 보기';
+      this.dataset.mode='approx';
+      document.getElementById('hwpxnote').textContent='HWPX · 구조 보기';
+    } else {
+      renderExact();
+    }
+  });
+
+  function openHwpx(f, t0){
+    var bufReady=new Promise(function(resolve, reject){
+      var rd=new FileReader();
+      rd.onerror=function(){ reject(new Error('READ_FAIL')); };
+      rd.onload=function(){ resolve(rd.result); };
+      rd.readAsArrayBuffer(f);
+    });
+
+    Promise.all([bufReady, loadHwpxLib()]).then(function(res){
+      var bytes=new Uint8Array(res[0]);
+      lastDocBytes=bytes;
+      var reader=new res[1].HwpxReader();
+      // loadFromArrayBuffer는 반환값이 없다. 완료 후 같은 인스턴스에서 꺼낸다.
+      return reader.loadFromArrayBuffer(bytes.buffer).then(function(){
+        return Promise.all([
+          reader.extractHtml({embedImages:true, tableClassName:'hwpx-tbl'}),
+          reader.extractText()
+        ]);
+      });
+    }).then(function(out){
+      var html=out[0]||'', rawText=out[1]||'';
+      approxHtmlCache='<div class="hwpx-page">'+html+'</div>';
+      exactHtmlCache=null;
+      viewer.innerHTML=approxHtmlCache;
+      if(window.HWPFonts) window.HWPFonts.applyToDom(viewer);
+      document.getElementById('hwpxnote').textContent='HWPX · 구조 보기';
+      var modeBtn=document.getElementById('hwpxmode');
+      modeBtn.hidden=false; modeBtn.disabled=false; modeBtn.dataset.mode='approx';
+      modeBtn.textContent='원본 레이아웃으로 보기 (약 4MB)';
+      document.getElementById('hwpxbar').hidden=false;
+
+      try{
+        tables=tablesFromHtml(html);
+        textData=textFromHtml(html) || rawText.trim();
+        var ta=document.getElementById('textout');
+        ta.value=textData;
+        document.getElementById('textlen').textContent=textData.length.toLocaleString()+'자';
+        renderTables();
+      }catch(pe){
+        tables=[]; document.getElementById('tblcount').textContent='';
+      }
+
+      fmeta.textContent=fmt(f.size)+' · '+Math.round(performance.now()-t0)+'ms';
+      loading.style.display='none';
+      selectTab('tab-view');
+      busy=false;
+
+      // 넓은 화면 + 절약 모드 아님 → 정확한 레이아웃을 먼저 보여준다.
+      var conn=navigator.connection||{};
+      if(!conn.saveData && !/2g/.test(conn.effectiveType||'') && window.innerWidth>=900){
+        renderExact();
+      }
+    }).catch(function(e){
+      loading.style.display='none';
+      var msg=String(e&&e.message||e);
+      if(window.console) console.error('[hwpx]', e);
+      reset();
+      if(/암호|encrypt/i.test(msg)){
+        fail('암호가 걸린 문서입니다.',
+          '<p>배포용 문서로 저장된 HWPX는 열 수 없습니다. 한글에서 암호를 해제한 뒤 다시 저장해 주세요.</p>');
+      } else if(msg==='READ_FAIL'){
+        fail('파일을 읽지 못했습니다.', '<p>파일이 손상되었거나 접근 권한이 없습니다.</p>');
+      } else if(/불러오지|초기화/.test(msg)){
+        fail('HWPX 모듈을 불러오지 못했습니다.',
+          '<p>네트워크 연결을 확인한 뒤 새로고침해 주세요. HWPX는 필요한 순간에만 내려받는 별도 모듈을 씁니다.</p>');
+      } else {
+        fail('HWPX 문서를 열지 못했습니다.',
+          '<p>압축이 손상되었거나 지원하지 않는 개체가 포함된 문서일 수 있습니다. '+
+          '한글에서 <strong>다른 이름으로 저장 → HWPX</strong>로 다시 저장해 보세요.</p>');
+      }
+      busy=false;
+    });
+  }
+
+  // ---- 글꼴 대응 ----
+  var lastFile=null;
+
+  function reportFonts(){
+    var note=document.getElementById('fontnote');
+    var miss=window.HWPFonts ? window.HWPFonts.missing(viewer) : [];
+    if(!miss.length){ note.hidden=true; note.innerHTML=''; return; }
+    var head=miss.slice(0,4).join(' · ');
+    if(miss.length>4) head+=' 외 '+(miss.length-4)+'종';
+    note.innerHTML='이 문서는 <b>'+esc(head)+'</b> 글꼴을 씁니다. 이 기기에 없어 '+
+      '<b>같은 계열(명조/고딕)의 글꼴로 대신</b> 표시했습니다. '+
+      '원본과 똑같이 보려면 글꼴 파일(.ttf/.otf)을 넣어 주세요.'+
+      '<button type="button" class="fa" id="fontnote-btn">글꼴 파일 넣기</button>';
+    note.hidden=false;
+    document.getElementById('fontnote-btn').addEventListener('click', function(){
+      document.getElementById('fontfile').click();
+    });
+  }
+
+  function reopen(){
+    if(!lastFile) return;
+    clearErr();
+    document.getElementById('fontnote').hidden=true;
+    open(lastFile);
+  }
+
+  document.getElementById('fontbtn').addEventListener('click', function(){
+    document.getElementById('fontfile').click();
+  });
+
+  document.getElementById('fontfile').addEventListener('change', function(){
+    var files=[].slice.call(this.files||[]);
+    if(!files.length) return;
+    var note=document.getElementById('fontnote');
+    note.hidden=false;
+    note.textContent='글꼴을 읽는 중…';
+    Promise.all(files.map(function(f){
+      return window.HWPFonts.installFile(f).then(function(n){ return n[0]; },
+        function(){ return null; });
+    })).then(function(names){
+      var ok=names.filter(Boolean);
+      if(!ok.length){
+        note.innerHTML='글꼴을 읽지 못했습니다. .ttf 또는 .otf 파일인지 확인해 주세요.';
+        return;
+      }
+      reopen();
+    });
+    this.value='';
+  });
+
+  function open(f){
+    if(busy) return;
+    clearErr();
+    if(!f) return;
+    lastFile=f;
+    var isHwpx=/\.hwpx$/i.test(f.name);
+    if(!isHwpx && !/\.hwp$/i.test(f.name)){
+      fail('HWP 파일이 아닙니다.', '<p><code>.hwp</code> 또는 <code>.hwpx</code> 파일을 선택해 주세요.</p>');
+      return;
+    }
+    if(f.size>MAX){
+      fail('파일이 너무 큽니다.', '<p>'+fmt(f.size)+' 파일입니다. 50MB 이하 문서만 열 수 있습니다.</p>');
+      return;
+    }
+
+    busy=true;
+    drop.hidden=true; app.hidden=false;
+    loading.style.display='flex';
+    fname.textContent=f.name;
+    fmeta.textContent=fmt(f.size);
+
+    var t0=performance.now();
+    if(isHwpx){ openHwpx(f, t0); return; }
+
+    var rd=new FileReader();
+    rd.onerror=function(){
+      busy=false; loading.style.display='none'; reset();
+      fail('파일을 읽지 못했습니다.', '<p>파일이 손상되었거나 접근 권한이 없습니다.</p>');
+    };
+    rd.onload=function(){
+      // hwp.js(CFB)는 바이너리 문자열 입력을 기대한다. 큰 파일에서 스택이 넘치지 않도록 나눠 변환한다.
+      setTimeout(function(){
+        try{
+          var bytes=new Uint8Array(rd.result), bin='', CH=0x8000;
+          for(var i=0;i<bytes.length;i+=CH){
+            bin+=String.fromCharCode.apply(null, bytes.subarray(i,i+CH));
+          }
+          var ms=Math.round(performance.now()-t0);
+          new window.HWPViewer(viewer, bin, {type:'binary'});
+          var renderMs=Math.round(performance.now()-t0);
+
+          // 표시는 이미 끝났다. 추출 실패가 화면을 막지 않게 분리한다.
+          try{
+            var doc=window.HWPparse(bin, {type:'binary'});
+            var parsed=window.HWPDoc.extract(doc);
+            tables=parsed.tables; textData=parsed.text;
+            var ta=document.getElementById('textout');
+            ta.value=textData;
+            document.getElementById('textlen').textContent=textData.length.toLocaleString()+'자';
+            renderTables();
+          }catch(pe){
+            document.getElementById('tblcount').textContent='';
+            document.getElementById('tblout').innerHTML='<div class="empty">이 문서에서는 표를 추출하지 못했습니다.</div>';
+          }
+
+          if(window.HWPFonts) window.HWPFonts.applyToDom(viewer);
+          fmeta.textContent=fmt(f.size)+' · '+renderMs+'ms';
+          loading.style.display='none';
+          selectTab('tab-view');
+          reportFonts();
+        }catch(e){
+          loading.style.display='none';
+          reset();
+          var msg=String(e&&e.message||e);
+          if(/not a compound|Invalid|CFB|signature/i.test(msg)){
+            fail('문서를 해석하지 못했습니다.',
+              '<p>HWP 5.0 형식이 아니거나 파일이 손상된 것 같습니다. '+
+              '구형(3.0 이하) 문서나 암호가 걸린 문서는 지원하지 않습니다.</p>');
+          } else {
+            fail('문서를 여는 중 오류가 났습니다.',
+              '<p>일부 차트·개체가 포함된 문서에서 발생할 수 있습니다. '+
+              '브라우저를 새로고침한 뒤 다시 시도해 주세요.</p>');
+          }
+        }finally{ busy=false; }
+      }, 40);
+    };
+    rd.readAsArrayBuffer(f);
+  }
+
+  drop.addEventListener('click', function(){ fileEl.click(); });
+  drop.addEventListener('keydown', function(e){
+    if(e.key==='Enter'||e.key===' '){ e.preventDefault(); fileEl.click(); }
+  });
+  fileEl.addEventListener('change', function(){ open(fileEl.files[0]); });
+
+  ['dragenter','dragover'].forEach(function(ev){
+    drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add('over'); });
+  });
+  ['dragleave','drop'].forEach(function(ev){
+    drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove('over'); });
+  });
+  drop.addEventListener('drop', function(e){
+    if(e.dataTransfer.files&&e.dataTransfer.files[0]) open(e.dataTransfer.files[0]);
+  });
+
+  document.getElementById('print').addEventListener('click', function(){ window.print(); });
+  document.getElementById('reset').addEventListener('click', reset);
+
+  ['tab-view','tab-text','tab-table'].forEach(function(id){
+    document.getElementById(id).addEventListener('click', function(){ selectTab(id); });
+  });
+
+  document.getElementById('copytext').addEventListener('click', function(){
+    copyText(document.getElementById('textout').value, this);
+  });
+  document.getElementById('dltext').addEventListener('click', function(){
+    // BOM을 붙여야 윈도우 메모장·엑셀에서 한글이 깨지지 않는다.
+    saveBlob(baseName()+'.txt', '\ufeff'+document.getElementById('textout').value, 'text/plain;charset=utf-8');
+  });
+  document.getElementById('copytbl').addEventListener('click', function(){
+    var i=+document.getElementById('tblsel').value||0;
+    if(tables[i]) copyText(window.HWPDoc.tableToTSV(tables[i]), this);
+  });
+  document.getElementById('dltbl').addEventListener('click', function(){
+    var i=+document.getElementById('tblsel').value||0;
+    if(tables[i]) saveBlob(baseName()+'-표'+(i+1)+'.csv', '\ufeff'+window.HWPDoc.tableToCSV(tables[i]), 'text/csv;charset=utf-8');
+  });
+  document.getElementById('dlxlsx').addEventListener('click', function(){
+    if(!tables.length) return;
+    // 표마다 시트를 하나씩 만든다. 시트 이름은 문서명-표N.
+    var sheets=tables.map(function(t,i){ return {name:'표'+(i+1), rows:t.rows}; });
+    var bytes=window.HWPXlsx.build(sheets);
+    saveBlob(baseName()+'.xlsx', bytes,
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  });
+})();
+</script>
+</body>
+</html>

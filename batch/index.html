@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HWP 여러 개 한 번에 - 표만 모아 엑셀, 텍스트 합치기 (무료)</title>
+<meta name="description" content="HWP 파일 여러 개를 한 번에 올려 표만 모아 엑셀(.xlsx) 한 파일로, 또는 본문 텍스트를 하나로 합칩니다. 설치·회원가입·서버 업로드 없이 브라우저에서 처리합니다.">
+<meta name="keywords" content="hwp 여러개 변환, hwp 일괄 변환, hwp 표 모아 엑셀, hwp 텍스트 합치기, hwp 대량, 한글 파일 여러개">
+<link rel="canonical" href="/batch/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%231e40af'/%3E%3Ctext x='50' y='68' font-size='46' font-family='sans-serif' font-weight='700' fill='%23fff' text-anchor='middle'%3EHWP%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="HWP 문서 작업대">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:image" content="https://appfloor7-sys.github.io/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:title" content="HWP 여러 개 한 번에 - 표는 엑셀로, 본문은 텍스트로">
+<meta property="og:description" content="HWP 여러 파일의 표를 모아 엑셀 한 장으로. 브라우저에서만 처리하고 서버로 보내지 않습니다.">
+<meta property="og:url" content="https://appfloor7-sys.github.io/batch/">
+<meta name="robots" content="index,follow">
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--muted:#666;--line:#e5e5e5;--accent:#1e40af;--accent-fg:#fff;--ok:#059669;--panel:#fafafa;--errbg:#fef2f2;--errfg:#991b1b}
+@media(prefers-color-scheme:dark){:root{--bg:#111;--fg:#eee;--muted:#999;--line:#2a2a2a;--panel:#181818;--accent:#7aa2f7;--accent-fg:#0b1220;--errbg:#2a1414;--errfg:#fca5a5}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 20px}
+header{padding:40px 0 18px;text-align:center}
+h1{font-size:clamp(1.5rem,4.2vw,2.05rem);line-height:1.3;margin:0 0 10px;letter-spacing:-.02em}
+.lead{color:var(--muted);margin:0 auto;max-width:36em;font-size:.97rem}
+.badges{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:16px 0 0;font-size:.78rem}
+.badges span{border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--muted)}
+.drop{border:2px dashed var(--line);border-radius:14px;padding:44px 20px;text-align:center;background:var(--panel);cursor:pointer;transition:.15s}
+.drop:hover,.drop.over{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 5%,var(--panel))}
+.drop p{margin:0;color:var(--muted);font-size:.9rem}
+.drop strong{display:block;color:var(--fg);font-size:1.05rem;margin-bottom:6px}
+.drop .icon{font-size:2rem;line-height:1;margin-bottom:10px}
+.list{margin-top:16px;border:1px solid var(--line);border-radius:12px;overflow:hidden;display:none}
+.list.show{display:block}
+.listbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.85rem}
+.listbar .sp{margin-left:auto;display:flex;gap:8px}
+.listbar button,.acts button{border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:8px;padding:7px 13px;font-size:.85rem;cursor:pointer;font-family:inherit}
+.listbar button:hover,.acts button:hover{border-color:var(--accent);color:var(--accent)}
+.files{max-height:300px;overflow:auto}
+.f{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line);font-size:.86rem}
+.f:last-child{border-bottom:0}
+.f .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.f .st{font-size:.78rem;color:var(--muted);flex:none}
+.f .st.ok{color:var(--ok)}
+.f .st.bad{color:var(--errfg)}
+.f button{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:1rem;padding:0 4px}
+.f button:hover{color:var(--errfg)}
+.acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.acts button{flex:1;min-width:200px;padding:13px;font-size:.92rem;font-weight:600}
+.acts button.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.acts button:disabled{opacity:.45;cursor:not-allowed}
+.sum{margin-top:12px;font-size:.85rem;color:var(--muted);text-align:center}
+.err{border:1px solid #fca5a5;background:var(--errbg);color:var(--errfg);border-radius:12px;padding:14px 16px;margin-top:14px;font-size:.9rem;display:none}
+.err.show{display:block}
+.upsell{margin-top:18px;border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:var(--panel);font-size:.88rem;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.upsell p{margin:0;color:var(--muted);flex:1;min-width:220px}
+.upsell a{color:var(--accent);text-decoration:none;font-weight:600;border:1px solid var(--accent);border-radius:8px;padding:8px 14px;flex:none}
+article{margin-top:44px;border-top:1px solid var(--line);padding-top:32px}
+article h2{font-size:1.15rem;margin:28px 0 10px}
+article h2:first-child{margin-top:0}
+article p,article li{color:var(--muted);font-size:.94rem}
+article ul,article ol{padding-left:1.3em}
+article li{margin-bottom:6px}
+article strong{color:var(--fg)}
+details{border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:8px}
+summary{cursor:pointer;font-weight:600;font-size:.94rem}
+details p{margin:10px 0 0}
+.ad-slot{margin:26px 0;padding:12px;border:1px solid var(--line);border-radius:10px;min-height:90px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.75rem}
+footer{border-top:1px solid var(--line);padding:24px 0 48px;color:var(--muted);font-size:.82rem;text-align:center}
+footer a{color:inherit}
+.sitelinks{margin-top:12px;display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.sitelinks a{color:var(--muted);text-decoration:none;border-bottom:1px solid var(--line)}
+.sitelinks a:hover{color:var(--accent);border-color:var(--accent)}
+nav.crumb{font-size:.82rem;color:var(--muted);padding-top:14px}
+nav.crumb a{color:var(--muted);text-decoration:none}
+@media(max-width:560px){.acts button{min-width:100%}}
+</style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"HWP 여러 개 한 번에 - 표 모아 엑셀","applicationCategory":"BusinessApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"description":"HWP 파일 여러 개의 표를 모아 엑셀(.xlsx)로, 또는 본문 텍스트를 하나로 합치는 무료 도구. 파일이 서버로 전송되지 않습니다."}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"HWP 파일 여러 개를 한 번에 처리할 수 있나요?","acceptedAnswer":{"@type":"Answer","text":"네. 한 번에 최대 20개까지 선택할 수 있고, 모든 파일의 표를 모아 엑셀 한 파일로 저장하거나 본문을 하나의 텍스트로 합칩니다."}},
+{"@type":"Question","name":"파일이 서버로 올라가나요?","acceptedAnswer":{"@type":"Answer","text":"아니요. 선택한 문서는 브라우저 메모리에서만 처리되며 어떤 서버로도 전송되지 않습니다."}},
+{"@type":"Question","name":"표가 있는 파일만 골라서 뽑을 수 있나요?","acceptedAnswer":{"@type":"Answer","text":"표가 없는 파일은 자동으로 제외되고, 표가 있는 문서만 시트로 만들어집니다. 시트 이름은 파일명과 표 번호로 붙습니다."}},
+{"@type":"Question","name":"HWPX도 되나요?","acceptedAnswer":{"@type":"Answer","text":"네. HWPX(한글 2014 이후 형식)와 HWP 5.0을 함께 넣어도 됩니다. 파일마다 형식을 자동으로 판별합니다."}}]}
+</script>
+</head>
+<body>
+<div class="wrap">
+<nav class="crumb"><a href="../">HWP 도구</a> › 여러 개 한 번에</nav>
+<header>
+  <h1>HWP 여러 개, 한 번에</h1>
+  <p class="lead">여러 문서의 <strong>표만 모아 엑셀 한 파일로</strong>, 또는 본문 텍스트를 하나로 합칩니다.
+  파일은 서버로 전송되지 않습니다.</p>
+  <div class="badges"><span>최대 20개</span><span>설치 없음</span><span>업로드 없음</span><span>무료</span></div>
+</header>
+
+<main>
+  <div class="drop" id="drop" role="button" tabindex="0" aria-label="HWP 파일 여러 개 선택">
+    <div class="icon" aria-hidden="true">📂</div>
+    <strong>HWP 파일을 여러 개 끌어다 놓으세요</strong>
+    <p>또는 클릭해서 선택 · .hwp · .hwpx · 파일당 최대 50MB</p>
+  </div>
+  <input type="file" id="file" accept=".hwp,.hwpx" multiple hidden>
+
+  <div class="list" id="list">
+    <div class="listbar">
+      <b id="cnt">0개</b>
+      <span class="sp">
+        <button type="button" id="addmore">추가</button>
+        <button type="button" id="clear">전체 지우기</button>
+      </span>
+    </div>
+    <div class="files" id="files"></div>
+  </div>
+
+  <div class="acts">
+    <button type="button" id="dlxlsx" disabled>표만 모아 엑셀(.xlsx)</button>
+    <button type="button" id="dltxt" disabled>본문 텍스트 합치기(.txt)</button>
+  </div>
+  <p class="sum" id="sum"></p>
+
+  <div class="err" id="err"></div>
+
+  <div class="upsell">
+    <p><strong>20개보다 많나요?</strong> 폴더 단위 처리와 파일명 자동 정리는 다음 단계입니다.</p>
+    <a href="mailto:?subject=HWP%20%EB%8C%80%EB%9F%89%20%EC%B2%98%EB%A6%AC%20%EC%95%8C%EB%A6%BC">알림 받기</a>
+  </div>
+
+  <div class="ad-slot" aria-hidden="true">광고 영역</div>
+
+  <article>
+    <h2>이런 때 씁니다</h2>
+    <ul>
+      <li>공고문·입찰서류 수십 개에서 <strong>표만 뽑아 비교표</strong>를 만들 때</li>
+      <li>부서별로 받은 사업계획서의 <strong>예산표만 모아</strong> 정리할 때</li>
+      <li>여러 공문의 본문을 <strong>한 파일로 붙여</strong> 검색·요약할 때</li>
+    </ul>
+
+    <h2>동작 방식</h2>
+    <ol>
+      <li>파일을 여러 개 선택합니다. 표가 없는 문서는 자동으로 빠집니다.</li>
+      <li><strong>표만 모아 엑셀</strong>을 누르면 문서마다 시트가 생깁니다.</li>
+      <li>엑셀 파일은 표준 xlsx 형식이며, 셀 안의 줄바꿈도 유지됩니다.</li>
+    </ol>
+
+    <h2>지원 범위</h2>
+    <ul>
+      <li><strong>지원</strong>: HWP 5.0(.hwp) · HWPX(.hwpx)의 본문·표 텍스트</li>
+      <li><strong>미지원</strong>: HWP 3.0 이하 구형 문서, 암호가 걸린 문서, 일부 차트·OLE 개체</li>
+      <li>표의 병합 칸은 내용만 옮기고, 병합 구조 자체는 재현하지 않습니다.</li>
+    </ul>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>파일이 정말 서버로 안 가나요?</summary><p>네. 브라우저 메모리에서만 처리합니다. 개발자 도구의 네트워크 탭을 열어 두고 파일을 넣어 보면 전송이 없는 것을 확인할 수 있습니다.</p></details>
+    <details><summary>표가 많은 문서는 어떻게 되나요?</summary><p>한 문서에 표가 여러 개면 표마다 시트가 하나씩 생깁니다. 20개 파일 × 표 5개면 시트 100개가 됩니다.</p></details>
+    <details><summary>엑셀에서 열면 한글이 깨지나요?</summary><p>깨지지 않습니다. 표준 xlsx 형식으로 저장하며 셀 값은 UTF-8입니다. CSV 대신 xlsx를 쓰는 이유가 이것입니다.</p></details>
+    <details><summary>병합된 셀은 어떻게 되나요?</summary><p>병합된 칸의 내용은 첫 칸에 들어가고 나머지는 빈 칸이 됩니다. 서식 병합은 재현하지 않습니다.</p></details>
+  </article>
+</main>
+
+<footer>
+  <p>HWP 렌더링·파싱: <a href="https://github.com/hahnlee/hwp.js" rel="noopener nofollow" target="_blank">hwp.js</a> (Apache-2.0) · 한글과컴퓨터와 무관한 독립 도구입니다.</p>
+  <nav class="sitelinks">
+    <a href="/">한 파일씩 열기</a>
+    <a href="/pro/">대량 처리 (준비 중)</a>
+  </nav>
+</footer>
+</div>
+
+<script src="../hwp.viewer.js"></script>
+<script src="../doc.js"></script>
+<script src="../xlsx.js"></script>
+<script>
+(function(){
+  var MAX_FILES=20, MAX_SIZE=50*1024*1024;
+  var drop=document.getElementById('drop'), fileEl=document.getElementById('file'),
+      listEl=document.getElementById('list'), filesEl=document.getElementById('files'),
+      cntEl=document.getElementById('cnt'), sumEl=document.getElementById('sum'),
+      errEl=document.getElementById('err');
+  var items=[];
+
+  function fmt(n){return n<1024?n+'B':n<1048576?(n/1024).toFixed(0)+'KB':(n/1048576).toFixed(1)+'MB';}
+  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function showErr(msg){ errEl.textContent=msg; errEl.classList.add('show'); }
+  function clearErr(){ errEl.textContent=''; errEl.classList.remove('show'); }
+
+  function binaryString(buf){
+    var bytes=new Uint8Array(buf), out='', CH=0x8000;
+    for(var i=0;i<bytes.length;i+=CH){
+      out+=String.fromCharCode.apply(null, bytes.subarray(i,i+CH));
+    }
+    return out;
+  }
+
+  var hwpxLib=null;
+  function loadHwpxLib(){
+    if(window.HWPXLib) return Promise.resolve(window.HWPXLib);
+    if(hwpxLib) return hwpxLib;
+    hwpxLib=new Promise(function(resolve, reject){
+      var s=document.createElement('script');
+      s.src='../hwpx.viewer.js';
+      s.onload=function(){ window.HWPXLib ? resolve(window.HWPXLib) : reject(new Error('모듈 초기화 실패')); };
+      s.onerror=function(){ hwpxLib=null; reject(new Error('모듈 로드 실패')); };
+      document.head.appendChild(s);
+    });
+    return hwpxLib;
+  }
+
+  function readHwpx(buf, lib){
+    var reader=new lib.HwpxReader();
+    return reader.loadFromArrayBuffer(buf).then(function(){
+      return Promise.all([reader.extractHtml({embedImages:true}), reader.extractText()]);
+    }).then(function(out){
+      var box=document.createElement('div');
+      box.innerHTML=out[0]||'';
+      var tables=[].slice.call(box.querySelectorAll('table')).map(function(t){
+        var rows=[].slice.call(t.rows).map(function(tr){
+          return [].slice.call(tr.cells).map(function(td){
+            return (td.innerText||td.textContent||'').replace(/\u00a0/g,' ').replace(/\n+$/,'');
+          });
+        }).filter(function(r){ return r.join('').trim()!==''; });
+        return {rows:rows, rowCount:rows.length};
+      }).filter(function(t){ return t.rowCount>0; });
+      var lines=[];
+      [].slice.call(box.children).forEach(function(el){
+        if(el.tagName==='TABLE'){
+          [].slice.call(el.rows).forEach(function(tr){
+            var cells=[].slice.call(tr.cells).map(function(td){
+              return (td.innerText||td.textContent||'').replace(/\s+/g,' ').trim();
+            });
+            if(cells.join('').trim()) lines.push(cells.join('\t'));
+          });
+        } else if(el.tagName!=='IMG'){
+          (el.innerText||el.textContent||'').split('\n').forEach(function(l){
+            l=l.replace(/\u00a0/g,' ').replace(/\s+$/,'');
+            if(l.trim()) lines.push(l);
+          });
+        }
+      });
+      return {text:lines.join('\n') || (out[1]||'').trim(), tables:tables};
+    });
+  }
+
+  function readFile(f){
+    var isHwpx=/\.hwpx$/i.test(f.name);
+    return new Promise(function(res){
+      var rd=new FileReader();
+      rd.onerror=function(){ res({ok:false, error:'읽기 실패'}); };
+      rd.onload=function(){
+        if(isHwpx){
+          loadHwpxLib()
+            .then(function(lib){ return readHwpx(rd.result, lib); })
+            .then(function(p){ res({ok:true, text:p.text, tables:p.tables}); },
+                  function(){ res({ok:false, error:'HWPX 해석 실패'}); });
+          return;
+        }
+        try{
+          var doc=window.HWPparse(binaryString(rd.result), {type:'binary'});
+          var parsed=window.HWPDoc.extract(doc);
+          res({ok:true, text:parsed.text, tables:parsed.tables});
+        }catch(e){
+          var m=String(e&&e.message||e);
+          res({ok:false, error:/CFB|compound|signature/i.test(m)?'HWP 형식 아님':'해석 실패'});
+        }
+      };
+      rd.readAsArrayBuffer(f);
+    });
+  }
+
+  function render(){
+    cntEl.textContent=items.length+'개';
+    filesEl.innerHTML=items.map(function(it,i){
+      var stClass = it.status==='ok' ? 'ok' : (it.status==='bad' ? 'bad' : '');
+      var stText = it.status==='ok' ? ('표 '+it.tables.length+' · '+(it.text||'').length.toLocaleString()+'자')
+                 : it.status==='bad' ? (it.error||'실패')
+                 : it.status==='wait' ? '대기' : '처리 중…';
+      return '<div class="f"><span class="nm" title="'+esc(it.name)+'">'+esc(it.name)+'</span>'+
+             '<span class="st '+stClass+'">'+esc(stText)+'</span>'+
+             '<button type="button" data-i="'+i+'" aria-label="빼기">×</button></div>';
+    }).join('');
+    var usable=items.filter(function(x){return x.status==='ok';});
+    var tbls=usable.reduce(function(a,x){return a+x.tables.length;},0);
+    sumEl.textContent = usable.length ? (usable.length+'개 문서 · 표 '+tbls+'개') : '';
+    document.getElementById('dlxlsx').disabled = tbls===0;
+    document.getElementById('dltxt').disabled = usable.length===0;
+    listEl.classList.toggle('show', items.length>0);
+  }
+
+  var processing=false;
+  function processAll(){
+    if(processing) return;
+    processing=true;
+    var queue=items.filter(function(x){return x.status==='wait';});
+    (function next(){
+      var it=queue.shift();
+      if(!it){ processing=false; render(); return; }
+      it.status='busy'; render();
+      readFile(it.file).then(function(r){
+        if(r.ok){ it.status='ok'; it.text=r.text; it.tables=r.tables; }
+        else { it.status='bad'; it.error=r.error; }
+        render();
+        // UI 갱신이 끼어들 수 있게 한 틱 양보한다.
+        setTimeout(next, 0);
+      });
+    })();
+  }
+
+  function addFiles(fileList){
+    clearErr();
+    var picked=[].slice.call(fileList||[]), bad=[];
+    picked.forEach(function(f){
+      if(items.length>=MAX_FILES){ bad.push(f.name+' (개수 초과)'); return; }
+      if(!/\.hwpx?$/i.test(f.name)){ bad.push(f.name+' (HWP 아님)'); return; }
+      if(f.size>MAX_SIZE){ bad.push(f.name+' (50MB 초과)'); return; }
+      if(items.some(function(x){return x.name===f.name && x.file.size===f.size;})) return;
+      items.push({file:f, name:f.name, status:'wait', text:'', tables:[]});
+    });
+    if(bad.length) showErr('제외된 파일: '+bad.slice(0,5).join(', ')+(bad.length>5?' 외 '+(bad.length-5)+'개':''));
+    render(); processAll();
+  }
+
+  drop.addEventListener('click', function(){ fileEl.click(); });
+  drop.addEventListener('keydown', function(e){
+    if(e.key==='Enter'||e.key===' '){ e.preventDefault(); fileEl.click(); }
+  });
+  fileEl.addEventListener('change', function(){ addFiles(fileEl.files); fileEl.value=''; });
+  ['dragenter','dragover'].forEach(function(ev){
+    drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add('over'); });
+  });
+  ['dragleave','drop'].forEach(function(ev){
+    drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove('over'); });
+  });
+  drop.addEventListener('drop', function(e){
+    if(e.dataTransfer.files) addFiles(e.dataTransfer.files);
+  });
+
+  filesEl.addEventListener('click', function(e){
+    var b=e.target.closest('button[data-i]');
+    if(!b) return;
+    items.splice(+b.dataset.i,1); render();
+  });
+  document.getElementById('addmore').addEventListener('click', function(){ fileEl.click(); });
+  document.getElementById('clear').addEventListener('click', function(){
+    items=[]; clearErr(); render();
+  });
+
+  function saveBlob(name, content, mime){
+    var blob=new Blob([content],{type:mime});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download=name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); },1000);
+  }
+
+  document.getElementById('dlxlsx').addEventListener('click', function(){
+    var sheets=[], used={};
+    items.filter(function(x){return x.status==='ok';}).forEach(function(it){
+      var base=it.name.replace(/\.hwpx?$/i,'').slice(0,24)||'문서';
+      it.tables.forEach(function(t,i){
+        var nm=(base+'-표'+(i+1)).slice(0,31), k=nm, n=2;
+        while(used[nm]){ nm=(k.slice(0,28)+'('+n++ +')').slice(0,31); }
+        used[nm]=true;
+        sheets.push({name:nm, rows:t.rows});
+      });
+    });
+    if(!sheets.length) return;
+    saveBlob('hwp-표모음.xlsx', window.HWPXlsx.build(sheets),
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  });
+
+  document.getElementById('dltxt').addEventListener('click', function(){
+    var parts=items.filter(function(x){return x.status==='ok';}).map(function(it){
+      return '===== '+it.name+' =====\n'+it.text;
+    });
+    if(!parts.length) return;
+    saveBlob('hwp-본문모음.txt', '\ufeff'+parts.join('\n\n'), 'text/plain;charset=utf-8');
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
