@@ -233,6 +233,15 @@ nav.crumb a{color:var(--muted);text-decoration:none}
     return rhwpMod;
   }
 
+  // getTextFileUnicode()는 문자열을 JSON으로 한 번 더 감싼 형태로 돌려준다.
+  function rhwpText(doc){
+    var s=String(doc.getTextFileUnicode()||'');
+    if(s.charAt(0)==='"' && s.charAt(s.length-1)==='"'){
+      try{ s=JSON.parse(s); }catch(e){}
+    }
+    return s.replace(/\r\n?/g,'\n').replace(/\n{3,}/g,'\n\n').trim();
+  }
+
   function readHwpx(buf, lib){
     var reader=new lib.HwpxReader();
     return reader.loadFromArrayBuffer(buf).then(function(){
@@ -291,7 +300,7 @@ nav.crumb a{color:var(--muted);text-decoration:none}
           loadRhwp().then(function(mod){
             try{
               var d=new mod.HwpDocument(new Uint8Array(rd.result));
-              var text=String(d.getTextFileUnicode()||'').replace(/\r\n?/g,'\n').replace(/\n{3,}/g,'\n\n').trim();
+              var text=rhwpText(d);
               res({ok:true, text:text, tables:[], engine:'rhwp'});
             }catch(err){
               res({ok:false, error:/CFB|compound|signature/i.test(m)?'HWP 형식 아님':'해석 실패'});

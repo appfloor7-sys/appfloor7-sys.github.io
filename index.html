@@ -477,7 +477,7 @@ footer a{color:inherit}
   }
 
   // ---- HWPX 원본 레이아웃 (WASM) ----
-  var rhwpMod=null, lastDocBytes=null, exactHtmlCache=null, approxHtmlCache=null;
+  var rhwpMod=null, lastDocBytes=null, exactHtmlCache=null, approxHtmlCache=null, lastExt='HWPX';
 
   function loadRhwp(){
     if(rhwpMod) return rhwpMod;
@@ -501,6 +501,16 @@ footer a{color:inherit}
     return rhwpMod;
   }
 
+  // getTextFileUnicode()는 문자열을 JSON으로 한 번 더 감싼 형태로 돌려준다.
+  // 그대로 쓰면 앞뒤 따옴표와 \r\n 이스케이프가 화면에 찍힌다.
+  function rhwpText(doc){
+    var s=String(doc.getTextFileUnicode()||'');
+    if(s.charAt(0)==='"' && s.charAt(s.length-1)==='"'){
+      try{ s=JSON.parse(s); }catch(e){}
+    }
+    return s.replace(/\r\n?/g,'\n').replace(/\n{3,}/g,'\n\n').trim();
+  }
+
   function renderExact(){
     var btn=document.getElementById('hwpxmode'), note=document.getElementById('hwpxnote');
     if(!lastDocBytes) return;
@@ -515,7 +525,7 @@ footer a{color:inherit}
       exactHtmlCache='<div class="hwpx-pages">'+html+'</div>';
       viewer.innerHTML=exactHtmlCache;
       document.getElementById('frame').scrollTop=0;
-      note.textContent='HWPX · 원본 레이아웃 · '+pages+'페이지'+(pages>limit?' (앞 '+limit+'장만 표시)':'');
+      note.textContent=lastExt+' · 원본 레이아웃 · '+pages+'페이지'+(pages>limit?' (앞 '+limit+'장만 표시)':'');
       btn.textContent='텍스트 흐름으로 보기';
       btn.disabled=false;
       btn.dataset.mode='exact';
@@ -523,10 +533,10 @@ footer a{color:inherit}
     }).catch(function(e){
       var msg=String(e&&e.message||e);
       if(msg==='FILE_PROTO'){
-        note.textContent='HWPX · 구조 보기 (파일을 직접 열면 원본 레이아웃은 쓸 수 없습니다)';
+        note.textContent=lastExt+' · 구조 보기 (파일을 직접 열면 원본 레이아웃은 쓸 수 없습니다)';
         btn.hidden=true;
       } else {
-        note.textContent='HWPX · 구조 보기 (원본 레이아웃을 불러오지 못했습니다)';
+        note.textContent=lastExt+' · 구조 보기 (원본 레이아웃을 불러오지 못했습니다)';
         btn.textContent='다시 시도';
         btn.disabled=false;
       }
@@ -556,7 +566,7 @@ footer a{color:inherit}
       viewer.innerHTML=approxHtmlCache;
 
       var text='';
-      try{ text=String(doc.getTextFileUnicode()||'').replace(/\r\n?/g,'\n').replace(/\n{3,}/g,'\n\n').trim(); }catch(e){}
+      try{ text=rhwpText(doc); }catch(e){}
       tables=[]; textData=text;
       var ta=document.getElementById('textout');
       ta.value=text;
@@ -581,7 +591,7 @@ footer a{color:inherit}
       if(approxHtmlCache!==null) viewer.innerHTML=approxHtmlCache;
       this.textContent='원본 레이아웃으로 보기';
       this.dataset.mode='approx';
-      document.getElementById('hwpxnote').textContent='HWPX · 구조 보기';
+      document.getElementById('hwpxnote').textContent=lastExt+' · 구조 보기';
     } else {
       renderExact();
     }
@@ -612,7 +622,7 @@ footer a{color:inherit}
       exactHtmlCache=null;
       viewer.innerHTML=approxHtmlCache;
       if(window.HWPFonts) window.HWPFonts.applyToDom(viewer);
-      document.getElementById('hwpxnote').textContent='HWPX · 구조 보기';
+      document.getElementById('hwpxnote').textContent=lastExt+' · 구조 보기';
       var modeBtn=document.getElementById('hwpxmode');
       modeBtn.hidden=false; modeBtn.disabled=false; modeBtn.dataset.mode='approx';
       modeBtn.textContent='원본 레이아웃으로 보기 (약 4MB)';
@@ -717,6 +727,7 @@ footer a{color:inherit}
     if(!f) return;
     lastFile=f;
     var isHwpx=/\.hwpx$/i.test(f.name);
+    lastExt=isHwpx?'HWPX':'HWP';
     if(!isHwpx && !/\.hwp$/i.test(f.name)){
       fail('HWP 파일이 아닙니다.', '<p><code>.hwp</code> 또는 <code>.hwpx</code> 파일을 선택해 주세요.</p>');
       return;

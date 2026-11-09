@@ -35,25 +35,24 @@
     return rows;
   }
 
-  // 중첩 표는 바깥 표에 이어 별도 표로 함께 수집한다.
-  function neighbours(t, out) {
-    (t.content || []).forEach(function (row) {
-      (row || []).forEach(function (cell) {
-        ((cell && cell.items) || []).forEach(function (p) {
-          (p.controls || []).forEach(function (cc) { if (isTable(cc)) push(cc, out); });
-        });
-      });
-    });
-  }
-
-  function push(t, out) {
+  // 표 한 개를 텍스트 줄과 표 목록에 넣는다. 셀 안의 중첩 표는 그 행 바로 뒤에 붙인다.
+  // 최상위 표만 넣으면 서식 문서(동의서 등)에서 본문 절반이 사라진다.
+  function emit(t, lines, out) {
     var rows = tableRows(t);
     out.push({
       rows: rows,
       cols: t.columnCount || (rows[0] ? rows[0].length : 0),
       rowCount: t.rowCount || rows.length
     });
-    neighbours(t, out);
+    rows.forEach(function (row, r) {
+      var cells = row.map(function (x) { return x.replace(/\n+/g, ' '); });
+      if (cells.join('').trim()) lines.push(cells.join('\t'));
+      (t.content[r] || []).forEach(function (cell) {
+        ((cell && cell.items) || []).forEach(function (p) {
+          (p.controls || []).forEach(function (cc) { if (isTable(cc)) emit(cc, lines, out); });
+        });
+      });
+    });
   }
 
   function extract(doc) {
@@ -63,13 +62,7 @@
         var t = paraText(p);
         if (t.trim()) lines.push(t.replace(/\n+$/, ''));
         (p.controls || []).forEach(function (c) {
-          if (!isTable(c)) return;
-          // 화면 텍스트에도 표 내용을 탭 구분으로 남긴다.
-          tableRows(c).forEach(function (row) {
-            var cells = row.map(function (x) { return x.replace(/\n+/g, ' '); });
-            if (cells.join('').trim()) lines.push(cells.join('\t'));
-          });
-          push(c, tables);
+          if (isTable(c)) emit(c, lines, tables);
         });
       });
     });
